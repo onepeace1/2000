@@ -29,7 +29,7 @@ np.random.seed(fix_seed)
 # basic config
 parser.add_argument('--task_name', type=str, required=True, default='long_term_forecast',
                     help='task name, options:[long_term_forecast, short_term_forecast, imputation, classification, anomaly_detection]')
-parser.add_argument('--is_training', type=int, required=True, default=1, help='status')
+parser.add_argument('--is_training', type=int, required=True, default=0, help='status')
 parser.add_argument('--model_id', type=str, required=True, default='test', help='model id')
 parser.add_argument('--model_comment', type=str, required=True, default='none', help='prefix when saving test results')
 parser.add_argument('--model', type=str, required=True, default='Autoformer',
@@ -77,8 +77,8 @@ parser.add_argument('--output_attention', action='store_true', help='whether to 
 parser.add_argument('--patch_len', type=int, default=16, help='patch length')
 parser.add_argument('--stride', type=int, default=8, help='stride')
 parser.add_argument('--prompt_domain', type=int, default=0, help='')
-parser.add_argument('--llm_model', type=str, default='LLAMA', help='LLM model') # LLAMA, GPT2, BERT
-parser.add_argument('--llm_dim', type=int, default='4096', help='LLM model dimension')# LLama7b:4096; GPT2-small:768; BERT-base:768
+parser.add_argument('--llm_model', type=str, default='HyperCLOVAX', help='LLM model') # LLAMA, GPT2, BERT, hyper
+parser.add_argument('--llm_dim', type=int, default='2048', help='LLM model dimension')# LLama7b:4096; GPT2-small:768; BERT-base:768, hyper 2048
 
 
 # optimization
@@ -174,9 +174,10 @@ for ii in range(args.itr):
         iter_count = 0
         train_loss = []
 
-        model.train()
+        #model.train()
         epoch_time = time.time()
         for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in tqdm(enumerate(train_loader)):
+            pass
             iter_count += 1
             model_optim.zero_grad()
 
