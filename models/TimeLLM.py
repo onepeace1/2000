@@ -3,8 +3,9 @@ from math import sqrt
 import torch
 import torch.nn as nn
 
+# Import AutoConfig, AutoModel, AutoTokenizer for HyperCLOVAX
 from transformers import LlamaConfig, LlamaModel, LlamaTokenizer, GPT2Config, GPT2Model, GPT2Tokenizer, BertConfig, \
-    BertModel, BertTokenizer
+    BertModel, BertTokenizer, AutoConfig, AutoModel, AutoTokenizer
 from layers.Embed import PatchEmbedding
 import transformers
 from layers.StandardNorm import Normalize
@@ -39,6 +40,9 @@ class Model(nn.Module):
         self.d_llm = configs.llm_dim
         self.patch_len = configs.patch_len
         self.stride = configs.stride
+
+        # Define default max length for HyperCLOVAX based on its stated context window
+        self.tokenizer_max_length_hyperclovax = 16384 # 16K tokens for HyperCLOVAX
 
         if configs.llm_model == 'LLAMA':
             # self.llama_config = LlamaConfig.from_pretrained('/mnt/alps/modelhub/pretrained_model/LLaMA/7B_hf/')
@@ -150,14 +154,68 @@ class Model(nn.Module):
                     trust_remote_code=True,
                     local_files_only=False
                 )
+        # --- Start HyperCLOVAX additions ---
+        elif configs.llm_model == 'HyperCLOVAX':
+            self.hyperclovax_model_name = 'naver-hyperclovax/HyperCLOVAX-SEED-Text-Instruct-1.5B'
+            
+            self.hyperclovax_config = AutoConfig.from_pretrained(self.hyperclovax_model_name, trust_remote_code=True)
+            self.hyperclovax_config.num_hidden_layers = configs.llm_layers
+            self.hyperclovax_config.output_attentions = True
+            self.hyperclovax_config.output_hidden_states = True
+            
+            # Update model_max_length in config, ensuring it's not the '1e30' default
+            # It's explicitly stated as 16k in its model card, so we'll enforce that.
+            self.hyperclovax_config.max_position_embeddings = self.tokenizer_max_length_hyperclovax
+            
+            try:
+                self.llm_model = AutoModel.from_pretrained(
+                    self.hyperclovax_model_name,
+                    trust_remote_code=True,
+                    local_files_only=True, # Try local first
+                    config=self.hyperclovax_config,
+                )
+            except EnvironmentError:
+                print(f"Local model files for {self.hyperclovax_model_name} not found. Attempting to download...")
+                print("Note: HyperCLOVAX models are gated. Ensure you are logged into Hugging Face and have accepted terms.")
+                self.llm_model = AutoModel.from_pretrained(
+                    self.hyperclovax_model_name,
+                    trust_remote_code=True,
+                    local_files_only=False, # Allow download
+                    config=self.hyperclovax_config,
+                )
+
+            try:
+                # Use AutoTokenizer for flexibility with HyperCLOVAX
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.hyperclovax_model_name,
+                    trust_remote_code=True,
+                    local_files_only=True, # Try local first
+                    # Explicitly set model_max_length here to avoid the OverflowError
+                    model_max_length=self.tokenizer_max_length_hyperclovax 
+                )
+            except EnvironmentError:
+                print(f"Local tokenizer files for {self.hyperclovax_model_name} not found. Attempting to download them..")
+                print("Note: HyperCLOVAX models are gated. Ensure you are logged into Hugging Face and have accepted terms.")
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    self.hyperclovax_model_name,
+                    trust_remote_code=True,
+                    local_files_only=False, # Allow download
+                    # Explicitly set model_max_length here to avoid the OverflowError
+                    model_max_length=self.tokenizer_max_length_hyperclovax
+                )
+        # --- End HyperCLOVAX additions ---
         else:
             raise Exception('LLM model is not defined')
 
         if self.tokenizer.eos_token:
             self.tokenizer.pad_token = self.tokenizer.eos_token
         else:
+            # For models that might not have an EOS token or a default pad token (e.g., some BERT variants)
+            # HyperCLOVAX also seems to use <|endoftext|> as its EOS, but this is a safe fallback.
             pad_token = '[PAD]'
             self.tokenizer.add_special_tokens({'pad_token': pad_token})
+            # Ensure the embedding layer is resized if new tokens are added
+            self.llm_model.resize_token_embeddings(len(self.tokenizer))
             self.tokenizer.pad_token = pad_token
 
         for param in self.llm_model.parameters():
@@ -166,7 +224,8 @@ class Model(nn.Module):
         if configs.prompt_domain:
             self.description = configs.content
         else:
-            self.description = 'The Electricity Transformer Temperature (ETT) is a crucial indicator in the electric power long-term deployment.'
+            # Updated description to be more general for time series, as ETT is just one example.
+            self.description = 'The input data represents multivariate time series, capturing dynamic trends and periodic patterns across various variables. This model aims to forecast future values based on historical observations.'
 
         self.dropout = nn.Dropout(configs.dropout)
 
@@ -175,7 +234,9 @@ class Model(nn.Module):
 
         self.word_embeddings = self.llm_model.get_input_embeddings().weight
         self.vocab_size = self.word_embeddings.shape[0]
-        self.num_tokens = 1000
+        self.num_tokens = 1000 # This 'num_tokens' needs to be carefully chosen based on what it's mapping to.
+                               # If it's a fixed size for the mapping layer, it's fine.
+                               # But if it represents a subset of vocabulary, it might need adjustment based on actual vocab.
         self.mapping_layer = nn.Linear(self.vocab_size, self.num_tokens)
 
         self.reprogramming_layer = ReprogrammingLayer(configs.d_model, configs.n_heads, self.d_ff, self.d_llm)
@@ -231,7 +292,22 @@ class Model(nn.Module):
 
         x_enc = x_enc.reshape(B, N, T).permute(0, 2, 1).contiguous()
 
-        prompt = self.tokenizer(prompt, return_tensors="pt", padding=True, truncation=True, max_length=2048).input_ids
+        # Dynamically set max_length for the tokenizer based on the LLM model
+        if hasattr(self, 'tokenizer_max_length_hyperclovax') and self.llm_model.name_or_path == self.hyperclovax_model_name:
+            current_max_length = self.tokenizer_max_length_hyperclovax
+        elif hasattr(self.llm_model.config, 'max_position_embeddings'):
+            current_max_length = self.llm_model.config.max_position_embeddings
+        elif hasattr(self.llm_model.config, 'n_positions'): # For GPT-2
+            current_max_length = self.llm_model.config.n_positions
+        else:
+            # Fallback to a reasonable default or raise error if max_length cannot be determined
+            current_max_length = 2048 # A common default
+            print(f"Warning: Could not determine specific max_length for {self.llm_model.name_or_path}. Using default: {current_max_length}")
+
+
+        # Pass the determined max_length to the tokenizer
+        prompt = self.tokenizer(prompt, return_tensors="pt", padding=True, truncation=True, max_length=current_max_length).input_ids
+        
         prompt_embeddings = self.llm_model.get_input_embeddings()(prompt.to(x_enc.device))  # (batch, prompt_token, dim)
 
         source_embeddings = self.mapping_layer(self.word_embeddings.permute(1, 0)).permute(1, 0)
