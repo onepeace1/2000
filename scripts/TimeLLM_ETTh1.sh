@@ -1,17 +1,18 @@
 model_name=TimeLLM
-train_epochs=100
+train_epochs=1
 learning_rate=0.01
 llama_layers=32
 
 master_port=00097
-num_process=8
-batch_size=24
-d_model=32
+num_process=1
+batch_size=8
+d_model=16
 d_ff=128
 
 comment='TimeLLM-ETTh1'
 
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/ETT-small/ \
@@ -37,7 +38,8 @@ accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_proces
   --train_epochs $train_epochs \
   --model_comment $comment
 
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/ETT-small/ \
@@ -62,8 +64,9 @@ accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_proces
   --llm_layers $llama_layers \
   --train_epochs $train_epochs \
   --model_comment $comment
-
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+  
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/ETT-small/ \
@@ -90,7 +93,7 @@ accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_proces
   --train_epochs $train_epochs \
   --model_comment $comment
 
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/ETT-small/ \
