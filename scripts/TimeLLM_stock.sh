@@ -15,7 +15,7 @@ export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
 accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/stock/ \
+  --root_path ./dataset/ETT-small/ \
   --data_path stock.csv \
   --model_id stock_512_96 \
   --model $model_name \
@@ -42,7 +42,7 @@ export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
 accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/stock/ \
+  --root_path ./dataset/ETT-small/ \
   --data_path stock.csv \
   --model_id stock_512_192 \
   --model $model_name \
@@ -69,7 +69,7 @@ export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
 accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/stock/ \
+  --root_path ./dataset/ETT-small/ \
   --data_path stock.csv \
   --model_id stock_512_336 \
   --model $model_name \
@@ -96,7 +96,7 @@ accelerate launch --mixed_precision bf16 --num_processes $num_process --main_pro
 accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
   --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/stock/ \
+  --root_path ./dataset/ETT-small/ \
   --data_path stock.csv \
   --model_id stock_512_720 \
   --model $model_name \
