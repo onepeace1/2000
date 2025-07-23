@@ -40,6 +40,9 @@ class Model(nn.Module):
         self.d_llm = configs.llm_dim
         self.patch_len = configs.patch_len
         self.stride = configs.stride
+        self.rsi_val = 0 
+        self.upper_band = 0 
+        self.lower_band = 0
 
         # Define default max length for HyperCLOVAX based on its stated context window
         self.tokenizer_max_length_hyperclovax = 16384 # 16K tokens for HyperCLOVAX
@@ -270,13 +273,31 @@ class Model(nn.Module):
         medians = torch.median(x_enc, dim=1).values
         lags = self.calcute_lags(x_enc)
         trends = x_enc.diff(dim=1).sum(dim=1)
+        moving_averages_5 = self.calculate_moving_average(x_enc, window=5)
+        moving_averages_20 = self.calculate_moving_average(x_enc, window=20)
+        rsi_vals = self.calculate_rsi(x_enc, window=14)
+        middle_bands, upper_bands, lower_bands = self.calculate_bollinger_bands(x_enc_reshaped, window=20, num_std_dev=2)
 
+        
         prompt = []
         for b in range(x_enc.shape[0]):
             min_values_str = str(min_values[b].tolist()[0])
             max_values_str = str(max_values[b].tolist()[0])
             median_values_str = str(medians[b].tolist()[0])
             lags_values_str = str(lags[b].tolist())
+            moving_averages_5_str = str(moving_averages_5[b].tolist()) if isinstance(moving_averages_5[b], torch.Tensor) else str(moving_averages_5[b])
+            moving_averages_20_str = str(moving_averages_20[b].tolist()) if isinstance(moving_averages_20[b], torch.Tensor) else str(moving_averages_20[b])
+            
+            rsi_val_str = str(rsi_vals[b].tolist()) if isinstance(rsi_vals[b], torch.Tensor) else str(rsi_vals[b])
+            upper_band_str = str(upper_bands[b].tolist()) if isinstance(upper_bands[b], torch.Tensor) else str(upper_bands[b])
+            lower_band_str = str(lower_bands[b].tolist()) if isinstance(lower_bands[b], torch.Tensor) else str(lower_bands[b])
+
+            rsi_state = (
+                "과매수 상태" if rsi_vals[b] > 70 else
+                "과매도 상태" if rsi_vals[b] < 30 else
+                "중립 상태"
+            )
+            
             prompt_ = (
                 f"<|start_prompt|>Dataset description: {self.description}"
                 f"Task description: forecast the next {str(self.pred_len)} steps given the previous {str(self.seq_len)} steps information; "
@@ -285,7 +306,11 @@ class Model(nn.Module):
                 f"max value {max_values_str}, "
                 f"median value {median_values_str}, "
                 f"the trend of input is {'upward' if trends[b] > 0 else 'downward'}, "
-                f"top 5 lags are : {lags_values_str}<|<end_prompt>|>"
+                f"top 5 lags are : {lags_values_str}, "
+                f"5-period moving average: {moving_averages_5_str}, "
+                f"20-period moving average: {moving_averages_20_str}, "
+                f"RSI (14-period): {rsi_val_str} ({rsi_state}), "
+                f"Bollinger Bands (20-period, 2 std dev): upper band {upper_band_str}, lower band {lower_band_str}<|<end_prompt>|>"
             )
 
             prompt.append(prompt_)
@@ -338,6 +363,65 @@ class Model(nn.Module):
         mean_value = torch.mean(corr, dim=1)
         _, lags = torch.topk(mean_value, self.top_k, dim=-1)
         return lags
+
+    def calculate_moving_average(self, data, window):
+        # Implement your moving average calculation here
+        # Example: Simple Moving Average
+        if data.shape[1] < window:
+            return torch.zeros(data.shape[0]) # Or handle error/edge case
+        return torch.mean(data[:, -window:, 0], dim=1) # Assuming last dimension is 1
+
+    def calculate_rsi(self, data, window=14):
+        # Implement RSI calculation (usually on closing prices or a single series)
+        # This is a simplified placeholder.
+        # A proper RSI calculation involves average gains and losses over the window.
+        if data.shape[1] < window + 1: # Need at least window + 1 points for changes
+            return torch.zeros(data.shape[0]) + 50 # Return neutral if not enough data
+
+        # Calculate price changes
+        deltas = data[:, 1:, 0] - data[:, :-1, 0]
+        gains = torch.relu(deltas)
+        losses = torch.relu(-deltas)
+
+        avg_gain = torch.zeros(data.shape[0])
+        avg_loss = torch.zeros(data.shape[0])
+
+        for i in range(data.shape[0]):
+            current_gains = gains[i, :]
+            current_losses = losses[i, :]
+
+            # Initial average gain/loss for the first 'window' periods
+            if current_gains.shape[0] >= window:
+                avg_gain[i] = torch.mean(current_gains[:window])
+                avg_loss[i] = torch.mean(current_losses[:window])
+
+                # Subsequent periods use Wilder's smoothing
+                for j in range(window, current_gains.shape[0]):
+                    avg_gain[i] = (avg_gain[i] * (window - 1) + current_gains[j]) / window
+                    avg_loss[i] = (avg_loss[i] * (window - 1) + current_losses[j]) / window
+            else:
+                avg_gain[i] = torch.mean(current_gains) if current_gains.numel() > 0 else 0.
+                avg_loss[i] = torch.mean(current_losses) if current_losses.numel() > 0 else 0.
+
+        rs = torch.where(avg_loss == 0, torch.tensor(float('inf')), avg_gain / avg_loss)
+        rsi = 100 - (100 / (1 + rs))
+        return rsi
+
+
+    def calculate_bollinger_bands(self, data, window=20, num_std_dev=2):
+        # Implement Bollinger Bands calculation
+        # Middle Band: Simple Moving Average
+        # Upper Band: Middle Band + (num_std_dev * Standard Deviation)
+        # Lower Band: Middle Band - (num_std_dev * Standard Deviation)
+        if data.shape[1] < window:
+            return torch.zeros(data.shape[0]), torch.zeros(data.shape[0]), torch.zeros(data.shape[0])
+
+        middle_band = torch.mean(data[:, -window:, 0], dim=1)
+        std_dev = torch.std(data[:, -window:, 0], dim=1)
+
+        upper_band = middle_band + (num_std_dev * std_dev)
+        lower_band = middle_band - (num_std_dev * std_dev)
+        return middle_band, upper_band, lower_band
 
 
 class ReprogrammingLayer(nn.Module):
