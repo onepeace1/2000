@@ -37,18 +37,22 @@ class PatchAnalyzer:
 
     def generate_text(self):
         rsi_state = (
-            "과매수 상태" if self.rsi_val > 70 else
-            "과매도 상태" if self.rsi_val < 30 else
-            "중립 상태"
+            "Overbought condition" if self.rsi_val > 70 else
+            "Oversold condition" if self.rsi_val < 30 else
+            "neutrality"
         )
         self.text = (
-            f"이 종목은 {self.sector} 섹터에 속하며, 데이터는 하루 단위로 수집되었다. "
-            f"{self.start_date}부터 시작하는 최근 20일간 평균 종가는 {self.mean_val:.2f}이며, "
-            f"최고가는 {self.max_val:.2f}, 최저가는 {self.min_val:.2f}이다. "
-            f"이동평균선은 단순(SMA) {self.sma:.2f}, 가중(WMA) {self.wma:.2f}, 지수(EMA) {self.ema:.2f}로 계산되었다. "
-            f"RSI(14)는 {self.rsi_val:.2f}이며, 이는 {rsi_state}를 시사한다. "
-            f"볼린저밴드는 중심선 {self.ma_20:.2f}, 상단선 {self.bb_upper:.2f}, 하단선 {self.bb_lower:.2f}로 구성되며, "
-            f"이를 통해 가격의 극단값과 변동성 변화를 판단할 수 있다."
+            f"The stock belongs to the {sector} sector and the data was collected on a daily basis. "
+            f"This patch covers a 20-day window starting from {start_date}. "
+            f"During this period, the average normalized closing price was {mean_val:.2f}, "
+            f"with a maximum of {max_val:.2f} and a minimum of {min_val:.2f}. "
+            f"Trend indicators were calculated as follows: the Simple Moving Average (SMA) is {sma:.2f}, "
+            f"the Weighted Moving Average (WMA) is {wma:.2f}, and the Exponential Moving Average (EMA) is {ema:.2f}. "
+            f"Momentum was assessed using the 14-day Relative Strength Index (RSI), which is {rsi_val:.2f}. "
+            f"Volatility was evaluated using Bollinger Bands, with a middle band (20-day SMA) at {ma_20:.2f}, "
+            f"an upper band at {bb_upper:.2f}, and a lower band at {bb_lower:.2f}. "
+            f"These indicators together describe the recent market behavior of the stock, "
+            f"providing insight into potential trends, reversals, and volatility conditions."
         )
 
     def get_summary(self):
