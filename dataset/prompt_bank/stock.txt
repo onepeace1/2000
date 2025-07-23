@@ -1,3 +1,5 @@
+## Domain
+
 1-1. Simple Moving Average (SMA)
 Definition: The average of the closing prices over a certain period n.
 
@@ -49,4 +51,21 @@ Price drops below the lower band → Oversold condition, potential rebound
 
 Band width contracts → Decrease in volatility, may precede a breakout
 
+## Instruction
+You are given expert-level domain descriptions and statistical summaries derived from time-series patches of stock price data. Your task is to generate an informative embedding of this text that captures both:
 
+Statistical characteristics of the patch, and
+
+Financial domain knowledge relevant to price prediction.
+
+The goal of this embedding is to enrich a downstream time-series forecasting model (LLM-based) by incorporating contextual understanding of technical indicators (e.g., SMA, EMA, RSI, Bollinger Bands) and their implications in trading decisions.
+
+Requirements:
+
+Focus on encoding key concepts that reflect momentum, volatility, trend direction, and signal strength as suggested by the indicators.
+
+Prioritize interpretability and predictive relevance over generic embeddings.
+
+Do not include raw numeric values or compute outputs—your job is to semantically encode the meaning and implications of the textual content.
+
+The resulting embedding will be concatenated with numerical time-series features and used as input for a downstream model to predict future price movement.
