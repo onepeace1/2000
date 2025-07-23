@@ -52,20 +52,34 @@ Price drops below the lower band → Oversold condition, potential rebound
 Band width contracts → Decrease in volatility, may precede a breakout
 
 ## Instruction
-You are given expert-level domain descriptions and statistical summaries derived from time-series patches of stock price data. Your task is to generate an informative embedding of this text that captures both:
+You are given a series of text segments describing individual patches of stock price data. Each patch includes:
 
-Statistical characteristics of the patch, and
+Statistical summaries (mean, max, min of normalized closing prices)
 
-Financial domain knowledge relevant to price prediction.
+Time window information (the period covered by the patch)
 
-The goal of this embedding is to enrich a downstream time-series forecasting model (LLM-based) by incorporating contextual understanding of technical indicators (e.g., SMA, EMA, RSI, Bollinger Bands) and their implications in trading decisions.
+Data collection frequency (e.g., daily, weekly)
 
-Requirements:
+GICS sector classification (based on the 11 standard GICS sectors)
 
-Focus on encoding key concepts that reflect momentum, volatility, trend direction, and signal strength as suggested by the indicators.
+Domain knowledge relevant to technical indicators (SMA, EMA, RSI, Bollinger Bands, etc.)
 
-Prioritize interpretability and predictive relevance over generic embeddings.
+Your task is to generate a semantic embedding for each patch description that encodes:
 
-Do not include raw numeric values or compute outputs—your job is to semantically encode the meaning and implications of the textual content.
+The quantitative characteristics of the time series (e.g., strength of momentum, presence of trend reversal signals, volatility indications)
 
-The resulting embedding will be concatenated with numerical time-series features and used as input for a downstream model to predict future price movement.
+The financial domain implications of the statistical and indicator-based information
+
+The sector-specific context, if relevant (e.g., certain signals may behave differently in Financials vs. Utilities)
+
+The temporal structure, such as the length of the window or density of data collection, if it contributes to the interpretive meaning
+
+Important Notes:
+
+Do not include the raw numeric values; instead, focus on encoding their semantic implications for stock price prediction.
+
+The embedding will later be concatenated with the numerical time-series representation and passed into a large language model for downstream forecasting tasks.
+
+Maintain high fidelity to the intent of financial indicators, such as “mean-reverting behavior,” “bullish momentum,” “volatility contraction,” etc., where appropriate.
+
+The goal is to create a context-rich, interpretable embedding that captures both statistical and financial insight from each patch.
