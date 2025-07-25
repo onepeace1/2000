@@ -1,164 +1,120 @@
 model_name=TimeLLM
-
-train_epochs=50
+train_epochs=1
+learning_rate=0.01
 llama_layers=32
-batch_size=24
-learning_rate=0.001
-d_model=8
-d_ff=32
 
 master_port=00097
-num_process=8
+num_process=1
+batch_size=8
+d_model=16
+d_ff=128
 
-comment='TimeLLM-M4'
+comment='TimeLLM-ETTh1'
 
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_m4.py \
-  --task_name short_term_forecast \
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+  --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/m4 \
-  --seasonal_patterns 'Monthly' \
-  --model_id m4_Monthly \
+  --root_path ./dataset/ETT-small/ \
+  --data_path stock.csv \
+  --model_id stock_512_96 \
   --model $model_name \
-  --data m4 \
+  --data ETTh1 \
   --features M \
-  --enc_in 1 \
-  --dec_in 1 \
-  --c_out 1 \
-  --llm_layers $llama_layers \
-  --d_model $d_model \
-  --d_ff $d_ff \
-  --patch_len 1 \
-  --stride 1 \
-  --batch_size $batch_size \
+  --seq_len 512 \
+  --label_len 48 \
+  --pred_len 96 \
+  --factor 3 \
+  --enc_in 7 \
+  --dec_in 7 \
+  --c_out 7 \
   --des 'Exp' \
   --itr 1 \
+  --d_model $d_model \
+  --d_ff $d_ff \
+  --batch_size $batch_size \
   --learning_rate $learning_rate \
-  --loss 'SMAPE' \
+  --llm_layers $llama_layers \
   --train_epochs $train_epochs \
   --model_comment $comment
 
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_m4.py \
-  --task_name short_term_forecast \
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+  --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/m4 \
-  --seasonal_patterns 'Yearly' \
-  --model_id m4_Yearly \
+  --root_path ./dataset/ETT-small/ \
+  --data_path stock.csv \
+  --model_id stock_512_192 \
   --model $model_name \
-  --data m4 \
+  --data ETTh1 \
   --features M \
-  --enc_in 1 \
-  --dec_in 1 \
-  --c_out 1 \
-  --llm_layers $llama_layers \
-  --d_model $d_model \
-  --d_ff $d_ff \
-  --patch_len 1 \
-  --stride 1 \
-  --batch_size $batch_size \
+  --seq_len 512 \
+  --label_len 48 \
+  --pred_len 192 \
+  --factor 3 \
+  --enc_in 7 \
+  --dec_in 7 \
+  --c_out 7 \
   --des 'Exp' \
   --itr 1 \
-  --learning_rate $learning_rate \
-  --loss 'SMAPE' \
+  --d_model 32 \
+  --d_ff 128 \
+  --batch_size $batch_size \
+  --learning_rate 0.02 \
+  --llm_layers $llama_layers \
+  --train_epochs $train_epochs \
+  --model_comment $comment
+  
+export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True" && \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+  --task_name long_term_forecast \
+  --is_training 1 \
+  --root_path ./dataset/ETT-small/ \
+  --data_path stock.csv \
+  --model_id stock_512_336 \
+  --model $model_name \
+  --data ETTh1 \
+  --features M \
+  --seq_len 512 \
+  --label_len 48 \
+  --pred_len 336 \
+  --factor 3 \
+  --enc_in 7 \
+  --dec_in 7 \
+  --c_out 7 \
+  --des 'Exp' \
+  --itr 1 \
+  --d_model $d_model \
+  --d_ff $d_ff \
+  --batch_size $batch_size \
+  --lradj 'COS'\
+  --learning_rate 0.001 \
+  --llm_layers $llama_layers \
   --train_epochs $train_epochs \
   --model_comment $comment
 
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_m4.py \
-  --task_name short_term_forecast \
+accelerate launch --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_main.py \
+  --task_name long_term_forecast \
   --is_training 1 \
-  --root_path ./dataset/m4 \
-  --seasonal_patterns 'Weekly' \
-  --model_id m4_Weekly \
+  --root_path ./dataset/ETT-small/ \
+  --data_path stock.csv \
+  --model_id stock_512_720 \
   --model $model_name \
-  --data m4 \
+  --data ETTh1 \
   --features M \
-  --enc_in 1 \
-  --dec_in 1 \
-  --c_out 1 \
-  --llm_layers $llama_layers \
-  --d_model $d_model \
-  --d_ff $d_ff \
-  --patch_len 1 \
-  --stride 1 \
-  --batch_size $batch_size \
+  --seq_len 512 \
+  --label_len 48 \
+  --pred_len 720 \
+  --factor 3 \
+  --enc_in 7 \
+  --dec_in 7 \
+  --c_out 7 \
   --des 'Exp' \
   --itr 1 \
-  --learning_rate $learning_rate \
-  --loss 'SMAPE' \
-  --train_epochs $train_epochs \
-  --model_comment $comment
-
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_m4.py \
-  --task_name short_term_forecast \
-  --is_training 1 \
-  --root_path ./dataset/m4 \
-  --seasonal_patterns 'Daily' \
-  --model_id m4_Daily \
-  --model $model_name \
-  --data m4 \
-  --features M \
-  --enc_in 1 \
-  --dec_in 1 \
-  --c_out 1 \
-  --llm_layers $llama_layers \
   --d_model $d_model \
   --d_ff $d_ff \
-  --patch_len 1 \
-  --stride 1 \
   --batch_size $batch_size \
-  --des 'Exp' \
-  --itr 1 \
   --learning_rate $learning_rate \
-  --loss 'SMAPE' \
-  --train_epochs $train_epochs \
-  --model_comment $comment
-
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_m4.py \
-  --task_name short_term_forecast \
-  --is_training 1 \
-  --root_path ./dataset/m4 \
-  --seasonal_patterns 'Quarterly' \
-  --model_id m4_Quarterly \
-  --model $model_name \
-  --data m4 \
-  --features M \
-  --enc_in 1 \
-  --dec_in 1 \
-  --c_out 1 \
   --llm_layers $llama_layers \
-  --d_model $d_model \
-  --d_ff $d_ff \
-  --patch_len 1 \
-  --stride 1 \
-  --batch_size $batch_size \
-  --des 'Exp' \
-  --itr 1 \
-  --learning_rate $learning_rate \
-  --loss 'SMAPE' \
-  --train_epochs $train_epochs \
-  --model_comment $comment
-
-
-accelerate launch --multi_gpu --mixed_precision bf16 --num_processes $num_process --main_process_port $master_port run_m4.py \
-  --task_name short_term_forecast \
-  --is_training 1 \
-  --root_path ./dataset/m4 \
-  --seasonal_patterns 'Hourly' \
-  --model_id m4_Hourly \
-  --model $model_name \
-  --data m4 \
-  --features M \
-  --enc_in 1 \
-  --dec_in 1 \
-  --c_out 1 \
-  --llm_layers $llama_layers \
-  --d_model $d_model \
-  --d_ff $d_ff \
-  --patch_len 1 \
-  --stride 1 \
-  --batch_size $batch_size \
-  --des 'Exp' \
-  --itr 1 \
-  --learning_rate $learning_rate \
-  --loss 'SMAPE' \
   --train_epochs $train_epochs \
   --model_comment $comment
