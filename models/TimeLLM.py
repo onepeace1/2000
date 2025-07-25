@@ -276,7 +276,7 @@ class Model(nn.Module):
         moving_averages_5 = self.calculate_moving_average(x_enc, window=5)
         moving_averages_20 = self.calculate_moving_average(x_enc, window=20)
         rsi_vals = self.calculate_rsi(x_enc, window=14)
-        middle_bands, upper_bands, lower_bands = self.calculate_bollinger_bands(x_enc_reshaped, window=20, num_std_dev=2)
+        middle_bands, upper_bands, lower_bands = self.calculate_bollinger_bands(x_enc, window=20, num_std_dev=2)
 
         
         prompt = []
