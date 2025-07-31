@@ -1,7 +1,7 @@
 <div align="center">
   <!-- <h1><b> Time-LLM </b></h1> -->
   <!-- <h2><b> Time-LLM </b></h2> -->
-  <h2><b> (ICLR'24) Time-LLM: Time Series Forecasting by Reprogramming Large Language Models </b></h2>
+  <h2><b> modified version of (ICLR'24) Time-LLM: Time Series Forecasting by Reprogramming Large Language Models </b></h2>
 </div>
 
 <div align="center">
@@ -13,44 +13,11 @@
 
 </div>
 
-<div align="center">
-
-**[<a href="https://arxiv.org/abs/2310.01728">Paper Page</a>]**
-**[<a href="https://www.youtube.com/watch?v=6sFiNExS3nI">YouTube Talk 1</a>]**
-**[<a href="https://www.youtube.com/watch?v=L-hRexVa32k">YouTube Talk 2</a>]**
-**[<a href="https://medium.com/towards-data-science/time-llm-reprogram-an-llm-for-time-series-forecasting-e2558087b8ac">Medium Blog</a>]**
-
-**[<a href="https://www.jiqizhixin.com/articles/2024-04-15?from=synced&keyword=TIME-LLM">机器之心中文解读</a>]**
-**[<a href="https://mp.weixin.qq.com/s/UL_Kl0PzgfYHOnq7d3vM8Q">量子位中文解读</a>]**
-**[<a href="https://mp.weixin.qq.com/s/FSxUdvPI713J2LiHnNaFCw">时序人中文解读</a>]**
-**[<a href="https://mp.weixin.qq.com/s/nUiQGnHOkWznoBPqM0KHXg">AI算法厨房中文解读</a>]**
-**[<a href="https://zhuanlan.zhihu.com/p/676256783">知乎中文解读</a>]**
-
-
-</div>
-
 <p align="center">
 
 <img src="./figures/logo.png" width="70">
 
 </p>
-
----
->
-> 🙋 Please let us know if you find out a mistake or have any suggestions!
-> 
-> 🌟 If you find this resource helpful, please consider to star this repository and cite our research:
-
-```
-@inproceedings{jin2023time,
-  title={{Time-LLM}: Time series forecasting by reprogramming large language models},
-  author={Jin, Ming and Wang, Shiyu and Ma, Lintao and Chu, Zhixuan and Zhang, James Y and Shi, Xiaoming and Chen, Pin-Yu and Liang, Yuxuan and Li, Yuan-Fang and Pan, Shirui and Wen, Qingsong},
-  booktitle={International Conference on Learning Representations (ICLR)},
-  year={2024}
-}
-```
-
-
 
 ## Requirements
 Use python 3.11 from MiniConda
