@@ -1,17 +1,10 @@
 <div align="center">
   <!-- <h1><b> Time-LLM </b></h1> -->
   <!-- <h2><b> Time-LLM </b></h2> -->
-  <h2><b> modified version of (ICLR'24) Time-LLM: Time Series Forecasting by Reprogramming Large Language Models </b></h2>
+  <h2><b> Modified version of (ICLR'24) Time-LLM: Time Series Forecasting by Reprogramming Large Language Models </b></h2>
 </div>
 
-<div align="center">
 
-![](https://img.shields.io/github/last-commit/KimMeen/Time-LLM?color=green)
-![](https://img.shields.io/github/stars/KimMeen/Time-LLM?color=yellow)
-![](https://img.shields.io/github/forks/KimMeen/Time-LLM?color=lightblue)
-![](https://img.shields.io/badge/PRs-Welcome-green)
-
-</div>
 
 <p align="center">
 
